@@ -15,8 +15,8 @@
 /*====================
    SIMULATION SETTINGS
  *====================*/
-#define DISP_HOR_RES 800
-#define DISP_VER_RES 600
+#define DISP_HOR_RES 240
+#define DISP_VER_RES 320
 
 /*******************
  * GENERAL SETTING

@@ -176,9 +176,7 @@ static void btn_event_cb(lv_event_t * e)
         /*Get the first child of the button which is the label and change its text*/
         lv_obj_t * label = lv_obj_get_child(btn, 0);
         lv_label_set_text_fmt(label, "Button: %d", cnt);
-        if(lv_label_get_text(rrlabel!=0)){
-          lv_label_set_text(rrlabel, "0");
-        }
+        lv_label_set_text(rrlabel, "0");
         
     }
 }

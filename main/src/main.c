@@ -16,11 +16,11 @@
 #include "lvgl/examples/lv_examples.h"
 #include "lvgl/demos/lv_demos.h"
 #if USE_SDL
-  #define SDL_MAIN_HANDLED /*To fix SDL's "undefined reference to WinMain" issue*/
-  #include <SDL2/SDL.h>
-  #include "lv_drivers/sdl/sdl.h"
+#define SDL_MAIN_HANDLED /*To fix SDL's "undefined reference to WinMain" issue*/
+#include <SDL2/SDL.h>
+#include "lv_drivers/sdl/sdl.h"
 #elif USE_X11
-  #include "lv_drivers/x11/x11.h"
+#include "lv_drivers/x11/x11.h"
 #endif
 // #include "lv_drivers/display/monitor.h"
 // #include "lv_drivers/indev/mouse.h"
@@ -40,7 +40,7 @@
  **********************/
 static void hal_init(void);
 static void hal_deinit(void);
-static void* tick_thread(void *data);
+static void *tick_thread(void *data);
 
 /**********************
  *  STATIC VARIABLES
@@ -162,6 +162,30 @@ static void user_image_demo()
 }
 #endif
 
+static void btn_event_cb(lv_event_t * e)
+{
+    lv_event_code_t code = lv_event_get_code(e);
+    lv_obj_t * btn = lv_event_get_target(e);
+    if(code == LV_EVENT_CLICKED) {
+        static uint8_t cnt = 0;
+        cnt++;
+
+        /*Get the first child of the button which is the label and change its text*/
+        lv_obj_t * label = lv_obj_get_child(btn, 0);
+        lv_label_set_text_fmt(label, "Button: %d", cnt);
+    }
+}
+
+static void slider_event_cb(lv_event_t * e)
+{
+    lv_obj_t * slider = lv_event_get_target(e);
+
+    lv_obj_t * label = lv_obj_get_child(slider, 0);
+    /*Refresh the text*/
+    lv_label_set_text_fmt(label, "%" LV_PRId32, lv_slider_get_value(slider));
+    lv_obj_align_to(label, slider, LV_ALIGN_OUT_TOP_MID, 0, -15);    /*Align top of the slider*/
+}
+
 int main(int argc, char **argv)
 {
   (void)argc; /*Unused*/
@@ -173,33 +197,61 @@ int main(int argc, char **argv)
   /*Initialize the HAL (display, input devices, tick) for LVGL*/
   hal_init();
 
-//  lv_example_switch_1();
-//  lv_example_calendar_1();
-//  lv_example_btnmatrix_2();
-//  lv_example_checkbox_1();
-//  lv_example_colorwheel_1();
-//  lv_example_chart_6();
-//  lv_example_table_2();
-//  lv_example_scroll_2();
-//  lv_example_textarea_1();
-//  lv_example_msgbox_1();
-//  lv_example_dropdown_2();
-//  lv_example_btn_1();
-//  lv_example_scroll_1();
-//  lv_example_tabview_1();
-//  lv_example_tabview_1();
-//  lv_example_flex_3();
-//  lv_example_label_1();
+  //  lv_example_switch_1();
+  //  lv_example_calendar_1();
+  //  lv_example_btnmatrix_2();
+  //  lv_example_checkbox_1();
+  //  lv_example_colorwheel_1();
+  //  lv_example_chart_6();
+  //  lv_example_table_2();
+  //  lv_example_scroll_2();
+  //  lv_example_textarea_1();
+  //  lv_example_msgbox_1();
+  //  lv_example_dropdown_2();
+  //  lv_example_btn_1();
+  //  lv_example_scroll_1();
+  //  lv_example_tabview_1();
+  //  lv_example_tabview_1();
+  //  lv_example_flex_3();
+  //  lv_example_label_1();
 
-  lv_demo_widgets();
-//  lv_demo_keypad_encoder();
-//  lv_demo_benchmark();
-//  lv_demo_stress();
-//  lv_demo_music();
+  // lv_demo_widgets();
+  //  lv_demo_keypad_encoder();
+  //  lv_demo_benchmark();
+  //  lv_demo_stress();
+  //  lv_demo_music();
 
-//  user_image_demo();
+  // lv_obj_t *label = lv_label_create(lv_scr_act());
+  // lv_label_set_text(label, "Hello Ardino and LVGL!");
+  // lv_obj_align(label, LV_ALIGN_CENTER, 0, 0);
 
-  while(1) {
+  lv_obj_t * btn = lv_btn_create(lv_scr_act());     /*Add a button the current screen*/
+    lv_obj_set_pos(btn, 10, 10);                            /*Set its position*/
+    lv_obj_set_size(btn, 120, 50);                          /*Set its size*/
+    lv_obj_add_event_cb(btn, btn_event_cb, LV_EVENT_ALL, NULL);           /*Assign a callback to the button*/
+
+    lv_obj_t * btnlabel = lv_label_create(btn);          /*Add a label to the button*/
+    lv_label_set_text(btnlabel, "Button");                     /*Set the labels text*/
+    lv_obj_center(btnlabel);
+
+
+    /*Create a slider in the center of the display*/
+    lv_obj_t * slider = lv_slider_create(lv_scr_act());
+    lv_obj_set_width(slider, 200);                          /*Set the width*/
+    lv_obj_center(slider);                                  /*Align to the center of the parent (screen)*/
+    lv_obj_add_event_cb(slider, slider_event_cb, LV_EVENT_VALUE_CHANGED, NULL);     /*Assign an event function*/
+
+    /*Create a label above the slider*/
+    lv_obj_t *sliderlabel = lv_label_create(slider);
+    lv_label_set_text(sliderlabel, "0");
+    lv_obj_align_to(sliderlabel, slider, LV_ALIGN_OUT_TOP_MID, 0, -15);
+
+
+
+  //  user_image_demo();
+
+  while (1)
+  {
     /* Periodically call the lv_task handler.
      * It could be done in a timer interrupt or an OS task too.*/
     lv_timer_handler();
@@ -296,8 +348,9 @@ static void hal_init(void)
   indev_drv_2.read_cb = lv_x11_get_keyboard;
   indev_drv_3.read_cb = lv_x11_get_mousewheel;
 #endif
+
   /* Set diplay theme */
-  lv_theme_t * th = lv_theme_default_init(disp, lv_palette_main(LV_PALETTE_BLUE), lv_palette_main(LV_PALETTE_RED), LV_THEME_DEFAULT_DARK, LV_FONT_DEFAULT);
+  lv_theme_t *th = lv_theme_default_init(disp, lv_palette_main(LV_PALETTE_BLUE), lv_palette_main(LV_PALETTE_RED), LV_THEME_DEFAULT_DARK, LV_FONT_DEFAULT);
   lv_disp_set_theme(disp, th);
 
   /* Tick init */
@@ -312,10 +365,10 @@ static void hal_init(void)
   lv_indev_set_group(enc_indev, g);
 
   /* Set a cursor for the mouse */
-  LV_IMG_DECLARE(mouse_cursor_icon);                   /*Declare the image file.*/
-  lv_obj_t * cursor_obj = lv_img_create(lv_scr_act()); /*Create an image object for the cursor*/
-  lv_img_set_src(cursor_obj, &mouse_cursor_icon);      /*Set the image source*/
-  lv_indev_set_cursor(mouse_indev, cursor_obj);        /*Connect the image  object to the driver*/
+  LV_IMG_DECLARE(mouse_cursor_icon);                  /*Declare the image file.*/
+  lv_obj_t *cursor_obj = lv_img_create(lv_scr_act()); /*Create an image object for the cursor*/
+  lv_img_set_src(cursor_obj, &mouse_cursor_icon);     /*Set the image source*/
+  lv_indev_set_cursor(mouse_indev, cursor_obj);       /*Connect the image  object to the driver*/
 }
 
 /**
@@ -338,10 +391,12 @@ static void hal_deinit(void)
  * @param data unused
  * @return never return
  */
-static void* tick_thread(void *data) {
+static void *tick_thread(void *data)
+{
   (void)data;
 
-  while(!end_tick) {
+  while (!end_tick)
+  {
     usleep(5000);
     lv_tick_inc(5); /*Tell LittelvGL that 5 milliseconds were elapsed*/
   }

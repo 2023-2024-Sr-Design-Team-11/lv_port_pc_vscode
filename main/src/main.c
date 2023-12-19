@@ -321,6 +321,7 @@ int main(int argc, char **argv)
     lv_obj_center(btnlabel);
     
     
+    sslabel = lv_label_create(lv_scr_act());
     lv_obj_set_pos(sslabel,50,50);
     lv_obj_set_size(sslabel,80,50); 
     lv_label_set_text(sslabel, "Stages"); 

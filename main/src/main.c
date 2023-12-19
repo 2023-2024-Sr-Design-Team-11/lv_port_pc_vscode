@@ -165,6 +165,7 @@ static void user_image_demo()
 
 
 static lv_obj_t * rrlabel;
+static lv_obj_t * sslabel;
 static void btn_event_cb(lv_event_t * e)
 {
     lv_event_code_t code = lv_event_get_code(e);
@@ -175,8 +176,28 @@ static void btn_event_cb(lv_event_t * e)
 
         /*Get the first child of the button which is the label and change its text*/
         lv_obj_t * label = lv_obj_get_child(btn, 0);
-        lv_label_set_text_fmt(label, "Button: %d", cnt);
-        lv_label_set_text(rrlabel, "0");
+        lv_label_set_text_fmt(label, "Stop: %d", cnt);
+        lv_label_set_text(sslabel, "It's rest.");
+
+
+        
+    }
+}
+
+static void btn_event_cb3(lv_event_t * e)
+{
+    lv_event_code_t code = lv_event_get_code(e);
+    lv_obj_t * btn = lv_event_get_target(e);
+    if(code == LV_EVENT_CLICKED) {
+        static uint8_t cnt = 0;
+        cnt++;
+
+        /*Get the first child of the button which is the label and change its text*/
+        lv_obj_t * label = lv_obj_get_child(btn, 0);
+        lv_label_set_text_fmt(label, "Start: %d", cnt);
+        lv_label_set_text(sslabel, "It's on!!");
+
+
         
     }
 }
@@ -189,6 +210,8 @@ static void btn_event2_cb(lv_event_t * e)
         lv_label_set_text(rrlabel, lv_label_get_text(label));
     }
 }
+
+
 
 
 static void scroll_event_cb(lv_event_t * e)
@@ -232,6 +255,11 @@ static void scroll_event_cb(lv_event_t * e)
         /*Use some opacity with larger translations*/
         lv_opa_t opa = lv_map(x, 0, r, LV_OPA_TRANSP, LV_OPA_COVER);
         lv_obj_set_style_opa(child, LV_OPA_COVER - opa, 0);
+
+        if(x==0){
+          lv_obj_t * label = lv_obj_get_child(child, 0);
+          lv_label_set_text(rrlabel, lv_label_get_text(label));
+        }
     }
 }
 
@@ -275,14 +303,31 @@ int main(int argc, char **argv)
   // lv_label_set_text(label, "Hello Ardino and LVGL!");
   // lv_obj_align(label, LV_ALIGN_CENTER, 0, 0);
 
-  lv_obj_t * btn = lv_btn_create(lv_scr_act());     /*Add a button the current screen*/
-    lv_obj_set_pos(btn, 10, 10);                            /*Set its position*/
-    lv_obj_set_size(btn, 120, 50);                          /*Set its size*/
-    lv_obj_add_event_cb(btn, btn_event_cb, LV_EVENT_ALL, NULL);           /*Assign a callback to the button*/
 
+    lv_obj_t * startbtn = lv_btn_create(lv_scr_act()); 
+    lv_obj_set_pos(startbtn, 10, 10);                            /*Set its position*/
+    lv_obj_set_size(startbtn, 80, 50);                          /*Set its size*/
+    lv_obj_add_event_cb(startbtn, btn_event_cb3, LV_EVENT_ALL, NULL);
+    lv_obj_t * startbtnlabel = lv_label_create(startbtn);          /*Add a label to the button*/
+    lv_label_set_text(startbtnlabel, "Start");                     /*Set the labels text*/
+    lv_obj_center(startbtnlabel);
+
+    lv_obj_t * btn = lv_btn_create(lv_scr_act());     /*Add a button the current screen*/
+    lv_obj_set_pos(btn, 100, 10);                            /*Set its position*/
+    lv_obj_set_size(btn, 80, 50);                          /*Set its size*/
+    lv_obj_add_event_cb(btn, btn_event_cb, LV_EVENT_ALL, NULL);           /*Assign a callback to the button*/
     lv_obj_t * btnlabel = lv_label_create(btn);          /*Add a label to the button*/
-    lv_label_set_text(btnlabel, "Button");                     /*Set the labels text*/
+    lv_label_set_text(btnlabel, "Stop");                     /*Set the labels text*/
     lv_obj_center(btnlabel);
+    
+    
+    lv_obj_set_pos(sslabel,50,50);
+    lv_obj_set_size(sslabel,80,50); 
+    lv_label_set_text(sslabel, "Stages"); 
+
+
+
+    
 
     lv_obj_t * cont = lv_obj_create(lv_scr_act());
     lv_obj_set_size(cont, 200, 200);
@@ -301,7 +346,7 @@ int main(int argc, char **argv)
         lv_obj_set_width(btn, lv_pct(100));
         lv_obj_add_event_cb(btn, btn_event2_cb, LV_EVENT_ALL, NULL);
         lv_obj_t * label = lv_label_create(btn);
-        lv_label_set_text_fmt(label, "Button %"LV_PRIu32, i);
+        lv_label_set_text_fmt(label, "Rate %"LV_PRIu32, i);
     }
 
     /*Update the buttons position manually for first*/
@@ -311,8 +356,8 @@ int main(int argc, char **argv)
     lv_obj_scroll_to_view(lv_obj_get_child(cont, 0), LV_ANIM_OFF);
 
     rrlabel = lv_label_create(lv_scr_act());
-    lv_label_set_text(rrlabel, "0");
-    lv_obj_align_to(rrlabel, cont, LV_ALIGN_OUT_LEFT_MID, -50, 0);
+    lv_label_set_text(rrlabel, "Rate: 0");
+    lv_obj_align_to(rrlabel, cont, LV_ALIGN_OUT_BOTTOM_MID, 0, 50);
 
 
 

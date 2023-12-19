@@ -256,10 +256,9 @@ static void scroll_event_cb(lv_event_t * e)
         lv_opa_t opa = lv_map(x, 0, r, LV_OPA_TRANSP, LV_OPA_COVER);
         lv_obj_set_style_opa(child, LV_OPA_COVER - opa, 0);
 
-        if(x==0){
-          lv_obj_t * label = lv_obj_get_child(child, 0);
-          lv_label_set_text(rrlabel, lv_label_get_text(label));
-        }
+        /*if(x==0){
+          lv_label_set_text(rrlabel, lv_label_get_text(lv_obj_get_child(child,0)));
+        }*/
     }
 }
 

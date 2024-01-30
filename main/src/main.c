@@ -22,6 +22,7 @@
 #elif USE_X11
 #include "lv_drivers/x11/x11.h"
 #endif
+
 // #include "lv_drivers/display/monitor.h"
 // #include "lv_drivers/indev/mouse.h"
 // #include "lv_drivers/indev/keyboard.h"
@@ -67,201 +68,140 @@ static bool end_tick = false; /* flag to terminate thread */
 /**********************
  *      VARIABLES
  **********************/
+int flowrate;
+int unit;
 
 /**********************
  *  STATIC PROTOTYPES
  **********************/
+// Label for current rate.
+static lv_obj_t *rateLabel;
+
+// Label for delivering state.
+static lv_obj_t *statusLabel;
+// Label for current rate.
+static lv_obj_t *rateLabel;
+
+// Label for delivering state.
+static lv_obj_t *statusLabel;
+
+static lv_obj_t* test_roller;
 
 /**********************
  *   GLOBAL FUNCTIONS
  **********************/
-#if 0
-static void user_image_demo()
+static void btn_event_Pause(lv_event_t *e)
 {
-  lv_obj_t * img = lv_gif_create(lv_scr_act());
-  lv_gif_set_src(img, "A:lvgl/examples/libs/gif/bulb.gif");
-  lv_obj_align(img, LV_ALIGN_BOTTOM_RIGHT, -20, -20);
+  lv_event_code_t code = lv_event_get_code(e);
+  lv_obj_t *btn = lv_event_get_target(e);
 
-  lv_color_t bg_color = lv_palette_lighten(LV_PALETTE_LIGHT_BLUE, 5);
-    lv_color_t fg_color = lv_palette_darken(LV_PALETTE_BLUE, 4);
-
-    lv_obj_t * qr = lv_qrcode_create(lv_scr_act(), 150, fg_color, bg_color);
-
-    /*Set data*/
-    const char * data = "https://lvgl.io";
-    lv_qrcode_update(qr, data, strlen(data));
-    lv_obj_center(qr);
-
-    /*Add a border with bg_color*/
-    lv_obj_set_style_border_color(qr, bg_color, 0);
-    lv_obj_set_style_border_width(qr, 5, 0);
-
-    /*Create a font*/
-    static lv_ft_info_t info;
-    /*FreeType uses C standard file system, so no driver letter is required.*/
-    info.name = "./lvgl/examples/libs/freetype/Lato-Regular.ttf";
-    info.weight = 24;
-    info.style = FT_FONT_STYLE_NORMAL;
-    info.mem = NULL;
-    if(!lv_ft_font_init(&info)) {
-        LV_LOG_ERROR("create failed.");
-    }
-
-    /*Create style with the new font*/
-    static lv_style_t style;
-    lv_style_init(&style);
-    lv_style_set_text_font(&style, info.font);
-    lv_style_set_text_align(&style, LV_TEXT_ALIGN_CENTER);
-
-    /*Create a label with the new style*/
-    lv_obj_t * label = lv_label_create(lv_scr_act());
-    lv_obj_add_style(label, &style, 0);
-    lv_label_set_text(label, "Hello world\nI'm a font created with FreeType");
-    lv_obj_set_pos(label, 10, 10);
-
-    lv_obj_t *  img1 = lv_img_create(lv_scr_act());
-    /* Assuming a File system is attached to letter 'A'
-     * E.g. set LV_USE_FS_STDIO 'A' in lv_conf.h */
-    lv_img_set_src(img1, "A:lvgl/examples/libs/png/wink.png");
-    lv_obj_align(img1, LV_ALIGN_LEFT_MID, 20, 0);
-
-    lv_obj_t * wp;
-
-    wp = lv_img_create(lv_scr_act());
-    /* Assuming a File system is attached to letter 'A'
-     * E.g. set LV_USE_FS_STDIO 'A' in lv_conf.h */
-    lv_img_set_src(wp, "A:lvgl/examples/libs/sjpg/small_image.sjpg");
-    lv_obj_align(wp, LV_ALIGN_RIGHT_MID, -20, 0);
-
-    lv_obj_t * img2 = lv_img_create(lv_scr_act());
-    /* Assuming a File system is attached to letter 'A'
-     * E.g. set LV_USE_FS_STDIO 'A' in lv_conf.h */
-    lv_img_set_src(img2, "A:lvgl/examples/libs/sjpg/lv_example_jpg.jpg");
-    //lv_obj_center(img);
-    lv_obj_align(img2, LV_ALIGN_TOP_RIGHT, -20, 20);
-
-    lv_obj_t * img3 = lv_img_create(lv_scr_act());
-    /* Assuming a File system is attached to letter 'A'
-     * E.g. set LV_USE_FS_STDIO 'A' in lv_conf.h */
-#if LV_COLOR_DEPTH == 32
-    lv_img_set_src(img3, "A:lvgl/examples/libs/bmp/example_32bit.bmp");
-#elif LV_COLOR_DEPTH == 16
-    lv_img_set_src(img, "A:lvgl/examples/libs/bmp/example_16bit.bmp");
-#endif
-    lv_obj_align(img3, LV_ALIGN_BOTTOM_MID, 0, -20);
-
-    lv_obj_t * img4 = lv_img_create(lv_scr_act());
-    lv_img_set_src(img4, "A:lvgl/examples/libs/ffmpeg/ffmpeg.png");
-    lv_obj_align(img4, LV_ALIGN_BOTTOM_LEFT, 20, -20);
-
-    lv_obj_t * player = lv_ffmpeg_player_create(lv_scr_act());
-    lv_ffmpeg_player_set_src(player, "./lvgl/examples/libs/ffmpeg/birds.mp4");
-    lv_ffmpeg_player_set_auto_restart(player, true);
-    lv_ffmpeg_player_set_cmd(player, LV_FFMPEG_PLAYER_CMD_START);
-    lv_obj_align(player, LV_ALIGN_TOP_MID, 0, 20);
-}
-#endif
-
-
-
-static lv_obj_t * rrlabel;
-static lv_obj_t * sslabel;
-static void btn_event_cb(lv_event_t * e)
-{
-    lv_event_code_t code = lv_event_get_code(e);
-    lv_obj_t * btn = lv_event_get_target(e);
-    if(code == LV_EVENT_CLICKED) {
-        static uint8_t cnt = 0;
-        cnt++;
-
-        /*Get the first child of the button which is the label and change its text*/
-        lv_obj_t * label = lv_obj_get_child(btn, 0);
-        lv_label_set_text_fmt(label, "Stop: %d", cnt);
-        lv_label_set_text(sslabel, "It's rest.");
-
-
-        
-    }
+  if (code == LV_EVENT_CLICKED)
+  {
+    /*Get the first child of the button which is the label and change its text*/
+    lv_obj_t *label = lv_obj_get_child(btn, 0);
+    lv_label_set_text(statusLabel, "Paused");
+  }
 }
 
-static void btn_event_cb3(lv_event_t * e)
+static void btn_event_Start(lv_event_t *e)
 {
-    lv_event_code_t code = lv_event_get_code(e);
-    lv_obj_t * btn = lv_event_get_target(e);
-    if(code == LV_EVENT_CLICKED) {
-        static uint8_t cnt = 0;
-        cnt++;
-
-        /*Get the first child of the button which is the label and change its text*/
-        lv_obj_t * label = lv_obj_get_child(btn, 0);
-        lv_label_set_text_fmt(label, "Start: %d", cnt);
-        lv_label_set_text(sslabel, "It's on!!");
-
-
-        
-    }
-}
-static void btn_event2_cb(lv_event_t * e)
-{
-    lv_event_code_t code = lv_event_get_code(e);
-    lv_obj_t * btn = lv_event_get_target(e);
-    if(code == LV_EVENT_CLICKED) {
-        lv_obj_t * label = lv_obj_get_child(btn, 0);
-        lv_label_set_text(rrlabel, lv_label_get_text(label));
-    }
+  lv_event_code_t code = lv_event_get_code(e);
+  lv_obj_t *btn = lv_event_get_target(e);
+  if (code == LV_EVENT_CLICKED)
+  {
+    /*Get the first child of the button which is the label and change its text*/
+    lv_label_set_text(statusLabel, "Delivering");
+  }
 }
 
-
-
-
-static void scroll_event_cb(lv_event_t * e)
+static void UpdateFlowText()
 {
-    lv_obj_t * cont = lv_event_get_target(e);
-
-    lv_area_t cont_a;
-    lv_obj_get_coords(cont, &cont_a);
-    lv_coord_t cont_y_center = cont_a.y1 + lv_area_get_height(&cont_a) / 2;
-
-    lv_coord_t r = lv_obj_get_height(cont) * 7 / 10;
-    uint32_t i;
-    uint32_t child_cnt = lv_obj_get_child_cnt(cont);
-    for(i = 0; i < child_cnt; i++) {
-        lv_obj_t * child = lv_obj_get_child(cont, i);
-        lv_area_t child_a;
-        lv_obj_get_coords(child, &child_a);
-
-        lv_coord_t child_y_center = child_a.y1 + lv_area_get_height(&child_a) / 2;
-
-        lv_coord_t diff_y = child_y_center - cont_y_center;
-        diff_y = LV_ABS(diff_y);
-
-        /*Get the x of diff_y on a circle.*/
-        lv_coord_t x;
-        /*If diff_y is out of the circle use the last point of the circle (the radius)*/
-        if(diff_y >= r) {
-            x = r;
-        }
-        else {
-            /*Use Pythagoras theorem to get x from radius and y*/
-            uint32_t x_sqr = r * r - diff_y * diff_y;
-            lv_sqrt_res_t res;
-            lv_sqrt(x_sqr, &res, 0x8000);   /*Use lvgl's built in sqrt root function*/
-            x = r - res.i;
-        }
-
-        /*Translate the item by the calculated X coordinate*/
-        lv_obj_set_style_translate_x(child, x, 0);
-
-        /*Use some opacity with larger translations*/
-        lv_opa_t opa = lv_map(x, 0, r, LV_OPA_TRANSP, LV_OPA_COVER);
-        lv_obj_set_style_opa(child, LV_OPA_COVER - opa, 0);
-
-        /*if(x==0){
-          lv_label_set_text(rrlabel, lv_label_get_text(lv_obj_get_child(child,0)));
-        }*/
-    }
+  char flowtext[32];
+  char units[16];
+  switch (unit)
+  {
+  case 0:
+    strcpy(units, "ml/sec");
+    break;
+  case 1:
+    strcpy(units, "ml/min");
+    break;
+  case 2:
+    strcpy(units, "ml/h");
+    break;
+  default:
+    strcpy(units, "ml/sec");
+    break;
+  }
+  sprintf(flowtext, "Rate: %d %s", flowrate, units);
+  lv_label_set_text(rateLabel, flowtext);
 }
 
+static void UpdateRate()
+{
+  float rate = flowrate;
+  switch (unit)
+  {
+  case 0:
+    rate = rate * 60;
+    break;
+  case 1:
+    rate = rate;
+    break;
+  case 2:
+    rate = rate / 60;
+    break;
+  default:
+    break;
+  }
+}
+
+static void roller_event_UpdateRateHun(lv_event_t *e)
+{
+  lv_event_code_t code = lv_event_get_code(e);
+  lv_obj_t *obj = lv_event_get_target(e);
+  if (code == LV_EVENT_VALUE_CHANGED)
+  {
+    int hundreds = lv_roller_get_selected(obj);
+    flowrate = (flowrate % 100) + (hundreds * 100);
+    UpdateFlowText();
+  }
+}
+
+static void roller_event_UpdateRateTen(lv_event_t *e)
+{
+  lv_event_code_t code = lv_event_get_code(e);
+  lv_obj_t *obj = lv_event_get_target(e);
+  if (code == LV_EVENT_VALUE_CHANGED)
+  {
+    int tens = lv_roller_get_selected(obj);
+    flowrate = ((flowrate / 100) * 100) + tens * 10 + (flowrate % 10);
+    UpdateFlowText();
+  }
+}
+
+static void roller_event_UpdateRateOne(lv_event_t *e)
+{
+  lv_event_code_t code = lv_event_get_code(e);
+  lv_obj_t *obj = lv_event_get_target(e);
+  if (code == LV_EVENT_VALUE_CHANGED)
+  {
+    int ones = lv_roller_get_selected(obj);
+    flowrate = ((flowrate / 10) * 10) + ones;
+    UpdateFlowText();
+  }
+}
+
+static void roller_event_UpdateRateUnit(lv_event_t *e)
+{
+  lv_event_code_t code = lv_event_get_code(e);
+  lv_obj_t *obj = lv_event_get_target(e);
+  if (code == LV_EVENT_VALUE_CHANGED)
+  {
+    unit = lv_roller_get_selected(obj);
+    UpdateFlowText();
+  }
+}
 
 int main(int argc, char **argv)
 {
@@ -274,95 +214,60 @@ int main(int argc, char **argv)
   /*Initialize the HAL (display, input devices, tick) for LVGL*/
   hal_init();
 
-  //  lv_example_switch_1();
-  //  lv_example_calendar_1();
-  //  lv_example_btnmatrix_2();
-  //  lv_example_checkbox_1();
-  //  lv_example_colorwheel_1();
-  //  lv_example_chart_6();
-  //  lv_example_table_2();
-  //  lv_example_scroll_2();
-  //  lv_example_textarea_1();
-  //  lv_example_msgbox_1();
-  //  lv_example_dropdown_2();
-  //  lv_example_btn_1();
-  //  lv_example_scroll_1();
-  //  lv_example_tabview_1();
-  //  lv_example_tabview_1();
-  //  lv_example_flex_3();
-  //  lv_example_label_1();
+  /**OSMI BASICS*/
 
-  // lv_demo_widgets();
-  //  lv_demo_keypad_encoder();
-  //  lv_demo_benchmark();
-  //  lv_demo_stress();
-  //  lv_demo_music();
+  lv_obj_t *startbtn = lv_btn_create(lv_scr_act());
+  lv_obj_set_pos(startbtn, 10, 10);  /*Set its position*/
+  lv_obj_set_size(startbtn, 80, 50); /*Set its size*/
+  lv_obj_add_event_cb(startbtn, btn_event_Start, LV_EVENT_ALL, NULL);
+  lv_obj_t *startbtnlabel = lv_label_create(startbtn); /*Add a label to the button*/
+  lv_label_set_text(startbtnlabel, "Start");           /*Set the labels text*/
+  lv_obj_center(startbtnlabel);
 
-  // lv_obj_t *label = lv_label_create(lv_scr_act());
-  // lv_label_set_text(label, "Hello Ardino and LVGL!");
-  // lv_obj_align(label, LV_ALIGN_CENTER, 0, 0);
+  lv_obj_t *btn = lv_btn_create(lv_scr_act());                   /*Add a button the current screen*/
+  lv_obj_set_pos(btn, 100, 10);                                  /*Set its position*/
+  lv_obj_set_size(btn, 80, 50);                                  /*Set its size*/
+  lv_obj_add_event_cb(btn, btn_event_Pause, LV_EVENT_ALL, NULL); /*Assign a callback to the button*/
+  lv_obj_t *btnlabel = lv_label_create(btn);                     /*Add a label to the button*/
+  lv_label_set_text(btnlabel, "Stop");                           /*Set the labels text*/
+  lv_obj_center(btnlabel);
 
+  const char *opts = "0\n1\n2\n3\n4\n5\n6\n7\n8\n9";
+  lv_obj_t *roller100 = lv_roller_create(lv_scr_act());
+  lv_roller_set_options(roller100, opts, LV_ROLLER_MODE_INFINITE);
+  lv_roller_set_visible_row_count(roller100, 3);
+  lv_obj_align(roller100, LV_ALIGN_LEFT_MID, 10, 0);
+  lv_obj_add_event_cb(roller100, roller_event_UpdateRateHun, LV_EVENT_ALL, NULL);
 
-    lv_obj_t * startbtn = lv_btn_create(lv_scr_act()); 
-    lv_obj_set_pos(startbtn, 10, 10);                            /*Set its position*/
-    lv_obj_set_size(startbtn, 80, 50);                          /*Set its size*/
-    lv_obj_add_event_cb(startbtn, btn_event_cb3, LV_EVENT_ALL, NULL);
-    lv_obj_t * startbtnlabel = lv_label_create(startbtn);          /*Add a label to the button*/
-    lv_label_set_text(startbtnlabel, "Start");                     /*Set the labels text*/
-    lv_obj_center(startbtnlabel);
+  lv_obj_t *roller10 = lv_roller_create(lv_scr_act());
+  lv_roller_set_options(roller10, opts, LV_ROLLER_MODE_INFINITE);
+  lv_roller_set_visible_row_count(roller10, 3);
+  lv_obj_align_to(roller10, roller100, LV_ALIGN_RIGHT_MID, 50, 0);
+  lv_obj_add_event_cb(roller10, roller_event_UpdateRateTen, LV_EVENT_ALL, NULL);
 
-    lv_obj_t * btn = lv_btn_create(lv_scr_act());     /*Add a button the current screen*/
-    lv_obj_set_pos(btn, 100, 10);                            /*Set its position*/
-    lv_obj_set_size(btn, 80, 50);                          /*Set its size*/
-    lv_obj_add_event_cb(btn, btn_event_cb, LV_EVENT_ALL, NULL);           /*Assign a callback to the button*/
-    lv_obj_t * btnlabel = lv_label_create(btn);          /*Add a label to the button*/
-    lv_label_set_text(btnlabel, "Stop");                     /*Set the labels text*/
-    lv_obj_center(btnlabel);
-    
-    
-    sslabel = lv_label_create(lv_scr_act());
-    lv_obj_set_pos(sslabel,50,50);
-    lv_obj_set_size(sslabel,80,50); 
-    lv_label_set_text(sslabel, "Stages"); 
+  lv_obj_t *roller1 = lv_roller_create(lv_scr_act());
+  lv_roller_set_options(roller1, opts, LV_ROLLER_MODE_INFINITE);
+  lv_roller_set_visible_row_count(roller1, 3);
+  lv_obj_align_to(roller1, roller10, LV_ALIGN_RIGHT_MID, 50, 0);
+  lv_obj_add_event_cb(roller1, roller_event_UpdateRateOne, LV_EVENT_ALL, NULL);
 
+  lv_obj_t *rollerunit = lv_roller_create(lv_scr_act());
+  lv_roller_set_options(rollerunit, "ml/sec\nml/min\nml/h", LV_ROLLER_MODE_INFINITE);
+  lv_roller_set_visible_row_count(rollerunit, 2);
+  lv_obj_align(rollerunit, LV_ALIGN_RIGHT_MID, -10, 0);
+  lv_obj_add_event_cb(rollerunit, roller_event_UpdateRateUnit, LV_EVENT_ALL, NULL);
 
+  statusLabel = lv_label_create(lv_scr_act());
+  lv_obj_set_pos(statusLabel, 50, 50);
+  lv_obj_set_size(statusLabel, 80, 50);
+  lv_label_set_text(statusLabel, "Paused");
 
-    
+  rateLabel = lv_label_create(lv_scr_act());
+  lv_label_set_text(rateLabel, "Rate: 0 ml/sec");
+  lv_obj_align(rateLabel, LV_ALIGN_BOTTOM_MID, 0, 0);
+  lv_obj_align_to(statusLabel, rateLabel, LV_ALIGN_OUT_BOTTOM_MID, 0, 10);
 
-    lv_obj_t * cont = lv_obj_create(lv_scr_act());
-    lv_obj_set_size(cont, 200, 200);
-    lv_obj_center(cont);
-    lv_obj_set_flex_flow(cont, LV_FLEX_FLOW_COLUMN);
-    lv_obj_add_event_cb(cont, scroll_event_cb, LV_EVENT_SCROLL, NULL);
-    lv_obj_set_style_radius(cont, LV_RADIUS_CIRCLE, 0);
-    lv_obj_set_style_clip_corner(cont, true, 0);
-    lv_obj_set_scroll_dir(cont, LV_DIR_VER);
-    lv_obj_set_scroll_snap_y(cont, LV_SCROLL_SNAP_CENTER);
-    lv_obj_set_scrollbar_mode(cont, LV_SCROLLBAR_MODE_OFF);
-
-    uint32_t i;
-    for(i = 0; i < 10; i++) {
-        lv_obj_t * btn = lv_btn_create(cont);
-        lv_obj_set_width(btn, lv_pct(100));
-        lv_obj_add_event_cb(btn, btn_event2_cb, LV_EVENT_ALL, NULL);
-        lv_obj_t * label = lv_label_create(btn);
-        lv_label_set_text_fmt(label, "Rate %"LV_PRIu32, i);
-    }
-
-    /*Update the buttons position manually for first*/
-    lv_event_send(cont, LV_EVENT_SCROLL, NULL);
-
-    /*Be sure the fist button is in the middle*/
-    lv_obj_scroll_to_view(lv_obj_get_child(cont, 0), LV_ANIM_OFF);
-
-    rrlabel = lv_label_create(lv_scr_act());
-    lv_label_set_text(rrlabel, "Rate: 0");
-    lv_obj_align_to(rrlabel, cont, LV_ALIGN_OUT_BOTTOM_MID, 0, 50);
-
-
-
-
-  //  user_image_demo();
+  // lv_obj_align(test_roller, LV_ALIGN_BOTTOM_MID,0,0);
 
   while (1)
   {

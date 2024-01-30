@@ -27,7 +27,8 @@
 			"lv_demos.h": "c",
 			"lvgl.h": "c",
 			"lv_drv_conf.h": "c",
-			"stdlib.h": "c"
+			"stdlib.h": "c",
+			"string": "c"
 		},
 	},
 	// tasks.json section

@@ -28,7 +28,13 @@
 			"lvgl.h": "c",
 			"lv_drv_conf.h": "c",
 			"stdlib.h": "c",
-			"string": "c"
+			"string": "c",
+			"lv_obj_class.h": "c",
+			"osmi_test.h": "c",
+			"lv_api_map.h": "c",
+			"osmi_roller_selector.h": "c",
+			"*.tcc": "c",
+			"cstdio": "c"
 		},
 	},
 	// tasks.json section

@@ -22,7 +22,8 @@
 #elif USE_X11
 #include "lv_drivers/x11/x11.h"
 #endif
-
+#include "osmi_test.h"
+#include "osmi_roller_selector.h"
 // #include "lv_drivers/display/monitor.h"
 // #include "lv_drivers/indev/mouse.h"
 // #include "lv_drivers/indev/keyboard.h"
@@ -84,8 +85,6 @@ static lv_obj_t *rateLabel;
 
 // Label for delivering state.
 static lv_obj_t *statusLabel;
-
-static lv_obj_t* test_roller;
 
 /**********************
  *   GLOBAL FUNCTIONS
@@ -267,7 +266,9 @@ int main(int argc, char **argv)
   lv_obj_align(rateLabel, LV_ALIGN_BOTTOM_MID, 0, 0);
   lv_obj_align_to(statusLabel, rateLabel, LV_ALIGN_OUT_BOTTOM_MID, 0, 10);
 
-  // lv_obj_align(test_roller, LV_ALIGN_BOTTOM_MID,0,0);
+  osmi_roller_selector bolus_rate;
+  osmi_roller_selector_create(lv_scr_act(), &bolus_rate);
+  // lv_obj_align_to(bolus_volume.container, roller10, LV_ALIGN_OUT_BOTTOM_RIGHT, 0, 0);
 
   while (1)
   {
